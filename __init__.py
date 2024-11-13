@@ -18,7 +18,7 @@ bl_info = {
     "author" : "robtl2@icloud.com",
     "description" : "ComfyUI-ComfyBridge's Blender plugin",
     "blender" : (4, 2, 1),
-    "version" : (0, 1, 0),
+    "version" : (0, 1, 1),
     "location" : "",
     "warning" : "",
     "category" : "Generic"
@@ -65,8 +65,14 @@ def on_image_received(pack):
 
     cb_props.progress = 0
     cb_props.info = ''
+    print(f'image received: {request_name}')
+    if request_name in TmpSetting.request_names:
+        TmpSetting.request_names.remove(request_name)
 
 def on_progress(args):
+    if len(TmpSetting.request_names) == 0:
+        return
+    
     _p = args['progress']
     _m = args['max']
     value = _p / _m
@@ -95,7 +101,6 @@ def do_disconnect(dummy=None):
     cb_props.info = ''
     EventMan.Remove('on_image_received', on_image_received)
     EventMan.Remove('on_progress', on_progress)
-    EventMan.stop()
     Disconnect()
 
 def is_in_camera(context):
@@ -126,7 +131,6 @@ class ConnectOperator(bpy.types.Operator):
             do_disconnect()
 
         return {'FINISHED'}
-    
 
 class SenderOperator(bpy.types.Operator):
     bl_idname = "cb.set_sender"
@@ -203,6 +207,7 @@ class QueuePromptOperator(bpy.types.Operator):
         cb_props = context.scene.comfy_bridge_props
         senders = [item for item in cb_props.sender_list if item.enabled]
         receivers = [item for item in cb_props.receiver_list if item.enabled]
+        TmpSetting.request_names = [item.text for item in receivers]
         ExecuteQueuePrompt(context, senders, receivers)
 
         return {'FINISHED'}

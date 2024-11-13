@@ -12,6 +12,7 @@ class TmpSetting():
     viewport_samples = 1
 
     collection_names = []
+    request_names = []
     collections = {}
 
     area_3D = None
@@ -21,6 +22,7 @@ class TmpSetting():
 
     @classmethod
     def record(cls):
+        
         def record_render_settings():
             cls.render_filepath = bpy.context.scene.render.filepath
             cls.viewport_samples = bpy.context.scene.eevee.taa_samples
@@ -33,13 +35,15 @@ class TmpSetting():
             bpy.context.scene.render.film_transparent = False
 
         def record_collection_settings():
+            cb_props = bpy.context.scene.comfy_bridge_props
+            
             cls.collections = {}
             for collection in bpy.data.collections:
                 cls.collections[collection.name] = {
                     'collection': collection,
                     'hide': collection.hide_viewport
                 }
-            cb_props = bpy.context.scene.comfy_bridge_props
+            
             cls.collection_names = [item.collection_name for item in cb_props.sender_list if item.enabled]
             for name in cls.collection_names:
                 collection = cls.collections.get(name)

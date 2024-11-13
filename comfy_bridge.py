@@ -197,7 +197,6 @@ def receiver_loop():
             elif code == PROGRESS:
                 progress = receiveInt()
                 max = receiveInt()
-                print(f'~~~~~~~~~on progress:{progress}/{max}')
                 EventMan.Trigger('on_progress', {'progress':progress, 'max':max})
             elif code == OK:
                 continue
@@ -244,6 +243,7 @@ def client_loop(host, port):
 
     Connect_Info['isConnected'] = False
     Connect_Info['isClosing'] = False
+    EventMan.stop()
     print('~~~~~~~~~Disconnected')
 
 '''
