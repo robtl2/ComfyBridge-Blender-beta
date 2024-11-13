@@ -6,7 +6,7 @@ import socket
 from .event import EventMan
 import threading
 import time
-
+import queue
 
 
 '''
@@ -37,8 +37,7 @@ Connect_Info = {
 
 _connected = False
 
-op_lock = threading.Lock()
-op_queues = []
+op_queues = queue.Queue()
 client_socket = None
 client_thread = None
 
@@ -156,8 +155,7 @@ def op_queuePrompt():
 
 def addOperation(op, *args):
     global op_queues
-    with op_lock:
-        op_queues.append({'op':op, 'args':args})
+    op_queues.put({'op':op, 'args':args})
 
 '''
 -------------------------------------------------------------
@@ -167,14 +165,13 @@ def sender_loop():
     global _connected
     while _connected:
         try:
-            with op_lock:
-                if len(op_queues) > 0:
-                    operation = op_queues.pop(0)
-                    op = operation['op']
-                    args = operation['args']
-                    op(*args)
-                else:
-                    time.sleep(0.025)
+            if not op_queues.empty():
+                operation = op_queues.get()
+                op = operation['op']
+                args = operation['args']
+                op(*args)
+            else:
+                time.sleep(0.025)
         except Exception as e:
             _connected = False
             print(f'~~~~~~~~~sender error:{e}')
@@ -199,13 +196,15 @@ def receiver_loop():
                 max = receiveInt()
                 EventMan.Trigger('on_progress', {'progress':progress, 'max':max})
             elif code == OK:
+                print('~~~~~~~~~receive ok')
+                time.sleep(0.025)
                 continue
             elif code == ERROR:
                 print(f'~~~~~~~~~receive error:{code}')
                 _connected = False
             else:
                 print(f'~~~~~~~~~unknown operation:{code}')
-                time.sleep(1)
+                _connected = False
         except Exception as e:
             _connected = False
             print(f'~~~~~~~~~receive error:{e}')
@@ -213,6 +212,9 @@ def receiver_loop():
 def client_loop(host, port):
     global _connected
     global op_queues
+    global client_thread
+    global client_socket
+
     Connect_Info['isConnecting'] = True
 
     _connected = False
@@ -243,6 +245,22 @@ def client_loop(host, port):
 
     Connect_Info['isConnected'] = False
     Connect_Info['isClosing'] = False
+    
+    if client_socket is not None:
+        try:
+            client_socket.close()
+        except Exception as e:
+            pass
+        client_socket = None
+
+    if client_thread is not None:
+        try:
+            client_thread.join()
+        except Exception as e:
+            pass
+        client_thread = None
+
+    op_queues.queue.clear()
     EventMan.stop()
     print('~~~~~~~~~Disconnected')
 
@@ -264,11 +282,17 @@ def Disconnect():
     Connect_Info['isClosing'] = True
 
     if client_socket is not None:
-        client_socket.close()
+        try:
+            client_socket.close()
+        except Exception as e:
+            pass
         client_socket = None
 
     if client_thread is not None:
-        client_thread.join()
+        try:
+            client_thread.join()
+        except Exception as e:
+            pass
         client_thread = None
 
 def SendImages(image_names, image_datas):
