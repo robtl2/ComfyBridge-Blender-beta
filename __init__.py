@@ -1,6 +1,5 @@
 import bpy
 import blf
-import atexit
 import tempfile
 import os
 from .comfy_bridge import Connect, Disconnect, Connect_Info
@@ -16,14 +15,27 @@ from .utils import Test
 
 bl_info = {
     "name" : "ComfyBridge-Blender",
-    "author" : "robtl2",
+    "author" : "robtl2@icloud.com",
     "description" : "ComfyUI-ComfyBridge's Blender plugin",
     "blender" : (4, 2, 1),
-    "version" : (0, 0, 1),
+    "version" : (0, 1, 0),
     "location" : "",
     "warning" : "",
     "category" : "Generic"
 }
+
+class CBPreferences(bpy.types.AddonPreferences):
+    bl_idname = __name__  # 使用当前模块名
+
+    port: bpy.props.IntProperty(
+        name="Port",
+        description="The port of ComfyUI-ComfyBridge",
+        default=17777,
+    ) # type: ignore
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "port", text="Port")
 
 def on_image_received(pack):
     cb_props = bpy.context.scene.comfy_bridge_props
@@ -68,7 +80,9 @@ def do_connect():
     cb_props = bpy.context.scene.comfy_bridge_props
     EventMan.Add('on_image_received', on_image_received)
     EventMan.Add('on_progress', on_progress)
-    Connect(cb_props.server_host)
+    prefs = bpy.context.preferences.addons[__name__].preferences
+    port = prefs.port
+    Connect(cb_props.server_host, port)
 
 @bpy.app.handlers.persistent
 def do_disconnect(dummy=None):
@@ -495,7 +509,7 @@ class ComfyBridgePanel(bpy.types.Panel):
                     col.operator(BakeTextureOperator.bl_idname, text="Bake")
                     
 classes = (
-    ComfyBridgePanel, QueuePromptOperator, TestOperator,
+    ComfyBridgePanel, QueuePromptOperator, TestOperator, CBPreferences, 
     ConnectOperator, SenderOperator, ReceiverOperator, Resume_CameraOperator,
     AddProjectionOperator, BakeTextureOperator, RemoveProjectionOperator,
     SenderList, ReceiverList, SimpleNameGroup,

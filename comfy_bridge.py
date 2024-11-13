@@ -45,13 +45,14 @@ client_thread = None
 reader_lock = threading.Lock()
 writer_lock = threading.Lock()
 
-def connectToComfyBridge(host):
+def connectToComfyBridge(host, port):
     global client_socket
     try:
         if Connect_Info['isConnected'] or client_socket is not None:
             return False
+        
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((host, 17777))
+        client_socket.connect((host, port))
         return True
     except Exception as e:
         print(f'Error in connectToComfyBridge: {e}')
@@ -210,13 +211,13 @@ def receiver_loop():
             _connected = False
             print(f'~~~~~~~~~receive error:{e}')
 
-def client_loop(host):
+def client_loop(host, port):
     global _connected
     global op_queues
     Connect_Info['isConnecting'] = True
 
     _connected = False
-    if not connectToComfyBridge(host):
+    if not connectToComfyBridge(host, port):
         return
     _connected = True
 
@@ -249,9 +250,9 @@ def client_loop(host):
 -------------------------------------------------------------
 --Public Functions--
 '''
-def Connect(host):
+def Connect(host, port=17777):
     global client_thread
-    client_thread = threading.Thread(target=client_loop, args=(host,))
+    client_thread = threading.Thread(target=client_loop, args=(host, port))
     client_thread.daemon = True
     client_thread.start()
 
