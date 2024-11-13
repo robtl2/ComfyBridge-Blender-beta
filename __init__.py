@@ -397,7 +397,7 @@ class ComfyBridgePanel(bpy.types.Panel):
     def draw_header_preset(self, context): 
         layout = self.layout
         row= layout.row()
-        row.operator(TestOperator.bl_idname, text="", icon="TOOL_SETTINGS")
+        row.operator('wm.url_open', text = '', icon = 'HOME').url = "https://github.com/robtl2/ComfyBridge-Blender-beta"
 
     def draw(self, context):
         layout = self.layout
