@@ -11,6 +11,12 @@ from .gpu_render import OffScreenCommandBuffer, ShaderBatch
 
 
 def bake(listener, args):
+    obj = listener["obj"]
+    if obj != args["object"]:
+        return
+
+    EventMan.Remove("mesh_data_for_gpu_ready", bake, listener)
+
     baker_vs = io.open("./glsl/baker.vs", "r").read()
     baker_fs = io.open("./glsl/baker.fs", "r").read()
 
@@ -18,12 +24,6 @@ def bake(listener, args):
     expand_fs = io.open("./glsl/expand.fs", "r").read()
 
     # input parameters
-    obj = listener["obj"]
-    if obj != args["object"]:
-        return
-
-    EventMan.Remove("mesh_data_for_gpu_ready", bake, listener)
-
     size = listener["size"]
     modelMatrix = listener["modelMatrix"]
     camera_pos = listener["camera_pos"]
