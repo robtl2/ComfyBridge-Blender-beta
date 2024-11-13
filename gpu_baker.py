@@ -14,8 +14,8 @@ def bake(listener, args):
     baker_vs = io.open("./glsl/baker.vs", "r").read()
     baker_fs = io.open("./glsl/baker.fs", "r").read()
 
-    expand_vs = io.open("./glsl/expand.vs", "r").read()
-    expand_fs = io.open("./glsl/expand.fs", "r").read()
+    # expand_vs = io.open("./glsl/expand.vs", "r").read()
+    # expand_fs = io.open("./glsl/expand.fs", "r").read()
 
     # input parameters
     obj = listener["obj"]
@@ -80,32 +80,32 @@ def bake(listener, args):
         matrix=modelMatrix
     )
 
-    expand_batch = ShaderBatch()
-    expand_batch.define_shader(
-        "expand",
-        uniforms = [
-            ('FLOAT','p', 1.0/size),
-            ('TEX_2D', 'BaseTexture', proj_image)
-        ], 
-        vert_in={
-            'vert':'VEC4',
-        }, 
-        vert_out={
-            'uv':'VEC2'
-        }, 
-        frag_out={
-            'FragColor':'VEC4'
-        }, 
-        vs=expand_vs, 
-        fs=expand_fs
-    )
+    # expand_batch = ShaderBatch()
+    # expand_batch.define_shader(
+    #     "expand",
+    #     uniforms = [
+    #         ('FLOAT','p', 1.0/size),
+    #         ('TEX_2D', 'BaseTexture', proj_image)
+    #     ], 
+    #     vert_in={
+    #         'vert':'VEC4',
+    #     }, 
+    #     vert_out={
+    #         'uv':'VEC2'
+    #     }, 
+    #     frag_out={
+    #         'FragColor':'VEC4'
+    #     }, 
+    #     vs=expand_vs, 
+    #     fs=expand_fs
+    # )
 
-    expand_batch.add_batch(
-        "expand",
-        {
-            'vert': [(-1.0, -1.0, 0.0, 0.0), (3.0, -1.0, 2.0, 0.0), (-1.0, 3.0, 0.0, 2.0)]
-        }
-    )
+    # expand_batch.add_batch(
+    #     "expand",
+    #     {
+    #         'vert': [(-1.0, -1.0, 0.0, 0.0), (3.0, -1.0, 2.0, 0.0), (-1.0, 3.0, 0.0, 2.0)]
+    #     }
+    # )
 
     # 一顿骚操作就是为了在这里享受一下
     cmb = OffScreenCommandBuffer((size, size))
@@ -113,11 +113,11 @@ def bake(listener, args):
     cmb.matrix_push()
     cmb.draw(baker_batch)
     # 向外扩展4象素，免得有UV接缝
-    for _ in range(4): 
-        cmb.fetch(lambda texture: expand_batch.update_uniform("expand","BaseTexture", texture))
-        cmb.swap()
-        cmb.clear()
-        cmb.draw(expand_batch)
+    # for _ in range(4): 
+    #     cmb.fetch(lambda texture: expand_batch.update_uniform("expand","BaseTexture", texture))
+    #     cmb.swap()
+    #     cmb.clear()
+    #     cmb.draw(expand_batch)
     cmb.matrix_pop()
     buffer = cmb.execute()
     
