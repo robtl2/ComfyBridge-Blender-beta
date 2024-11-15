@@ -32,6 +32,10 @@ class SenderNameGroup(bpy.types.PropertyGroup):
         default=False,
         description='Output lineart channel to comfyUI'
     ) # type: ignore
+    output_mask: bpy.props.BoolProperty(
+        default=False,
+        description='Output mask channel to comfyUI'
+    ) # type: ignore
     
     enabled: bpy.props.BoolProperty(default=True) # type: ignore
 

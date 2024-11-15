@@ -53,6 +53,9 @@ class DepthNormalRenderer:
 
     def render_lineart(self):
         self._request_render(self._render_lineart)
+
+    def render_mask(self):
+        self._request_render(self._render_mask) 
         
     #----------------------------------
     '''private methods'''
@@ -277,4 +280,52 @@ class DepthNormalRenderer:
         image_name = f"{self.collection_name}_L"
         self._encode_png(image_name, buffer)
 
-    
+    def _render_mask(self):
+        # 就填充个白色，没必要再写一个shader
+        lineart_vs = open("./glsl/lineart.vs").read()
+        lineart_fs = open("./glsl/lineart.fs").read()
+
+        mask_batch = ShaderBatch()
+        mask_batch.define_shader(
+            "mask",
+            uniforms = [
+                ('MAT4', 'vpMatrix', self.vp_matrix),
+                ('VEC2', 'aspectRatio', (self.size[1] / self.size[0], 1.0)),
+            ], 
+            vert_in={
+                'pos':'VEC4',
+                'normal':'VEC4'
+            }, 
+            vert_out={
+                'color_out':'VEC3'
+            }, 
+            frag_out={
+                'FragColor':'VEC4'
+            }, 
+            vs=lineart_vs, 
+            fs=lineart_fs
+        )
+
+        for obj in self.objects:
+            mesh_data = self.mesh_data[obj]
+            pos = [(x, y, z, 1.0) for x, y, z in mesh_data['pos']]
+            normal = [(x, y, z, 0.0) for x, y, z in mesh_data['normal']]
+            mask_batch.add_batch(
+                "mask",
+                {
+                    'pos': pos,
+                    'normal': normal,
+                }, 
+                indices=mesh_data['indices'],
+                matrix=obj.matrix_world
+            )
+
+        cmb = OffScreenCommandBuffer(self.size)
+        cmb.clear((0,0,0,1))
+        cmb.matrix_push()
+        cmb.draw(mask_batch)
+        cmb.matrix_pop()
+        buffer = cmb.execute()
+        
+        image_name = f"{self.collection_name}_M"
+        self._encode_png(image_name, buffer)

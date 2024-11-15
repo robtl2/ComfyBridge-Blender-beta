@@ -460,7 +460,9 @@ class ComfyBridgePanel(bpy.types.Panel):
                     row = box.row()
                     row.prop(sender_prop, "output_depth", text=f"{collection_name}_D")
                     row.prop(sender_prop, "output_normal", text=f"{collection_name}_N")
+                    row = box.row()
                     row.prop(sender_prop, "output_lineart", text=f"{collection_name}_L")
+                    row.prop(sender_prop, "output_mask", text=f"{collection_name}_M")
 
 
         col = layout.column()

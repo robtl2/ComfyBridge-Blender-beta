@@ -70,6 +70,9 @@ def RenderCollection(context, sender):
             if sender.output_lineart:
                 more_channels = True
                 names_in_list.append(f"{sender_name}_L")
+            if sender.output_mask:
+                more_channels = True
+                names_in_list.append(f"{sender_name}_M")
 
         return more_channels
 
@@ -89,6 +92,8 @@ def RenderCollection(context, sender):
                 depth_normal_renderer.render_normal()
             if sender.output_lineart:
                 depth_normal_renderer.render_lineart()
+            if sender.output_mask:
+                depth_normal_renderer.render_mask()
 
     more_channels = prepare_render()
     render(more_channels)
