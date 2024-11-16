@@ -260,7 +260,7 @@ class DepthNormalRenderer:
             )
             # 试一试两个pass, 嗯，好使
             pos = [(x, y, z, 1.0) for x, y, z in mesh_data['pos']]
-            offset = 10.0/self.size[1]
+            offset = 0.005
             normal = [(x, y, z, offset) for x, y, z in mesh_data['normal']]
             lineart_batch.add_batch(
                 "lineart",
