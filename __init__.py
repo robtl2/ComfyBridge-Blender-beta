@@ -10,7 +10,7 @@ from .cb_props import CBProps, ReceiverNameGroup, SenderNameGroup, ProjectionPro
 from .queue_prompt import ExecuteQueuePrompt, on_receiver_changed
 from .tmp_setting import TmpSetting
 from .gpu_baker import StartBake
-from .utils import Test
+from .gpu_depth_normal import DepthNormalRenderer
 
 
 bl_info = {
@@ -225,16 +225,16 @@ class AddProjectionOperator(bpy.types.Operator):
         if not image:
             return {'FINISHED'}
 
-        camera = bpy.context.scene.camera
-        if not camera:
-            self.report({'ERROR'}, "No camera found in scene or 3D view.")
-            return {'FINISHED'}
+        # camera = bpy.context.scene.camera
+        # if not camera:
+        #     self.report({'ERROR'}, "No camera found in scene or 3D view.")
+        #     return {'FINISHED'}
         
         mode = bpy.context.object.mode
         bpy.ops.object.mode_set(mode='OBJECT')
         
-        vp_matrix, is_ortho, view_matrix, proj_matrix = GetCameraVPMatrix(camera)
-        camera_pos, camera_dir = GetViewVector(camera)
+        vp_matrix, is_ortho, view_matrix, proj_matrix = GetCameraVPMatrix()
+        camera_pos, camera_dir = GetViewVector()
 
         active_obj = bpy.context.active_object
         if active_obj and active_obj.type == 'MESH':
@@ -384,7 +384,8 @@ class TestOperator(bpy.types.Operator):
     bl_description = "Test"
 
     def execute(self, context):
-        Test(context)
+        depth_normal_renderer = DepthNormalRenderer(context, "cube", debug=True)
+        depth_normal_renderer.render_depth()
         return {'FINISHED'}
 
 class ComfyBridgePanel(bpy.types.Panel):
@@ -397,7 +398,8 @@ class ComfyBridgePanel(bpy.types.Panel):
     def draw_header_preset(self, context): 
         layout = self.layout
         row= layout.row()
-        row.operator('wm.url_open', text = '', icon = 'HOME').url = "https://github.com/robtl2/ComfyBridge-Blender-beta"
+        row.operator(TestOperator.bl_idname, text='', icon='VIEW3D')
+        # row.operator('wm.url_open', text = '', icon = 'HOME').url = "https://github.com/robtl2/ComfyBridge-Blender-beta"
 
     def draw(self, context):
         layout = self.layout

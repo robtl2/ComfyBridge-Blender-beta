@@ -19,8 +19,7 @@ class DepthNormalRenderer:
             resolution = resolution.split(",")
             resolution = (int(resolution[0]), int(resolution[1]))
 
-        camera = context.scene.camera   
-        self.vp_matrix, self.is_ortho, self.view_matrix, self.proj_matrix = GetCameraVPMatrix(camera)
+        self.vp_matrix, self.is_ortho, self.view_matrix, self.proj_matrix = GetCameraVPMatrix()
         self.mesh_data = {}
         self.size = resolution
         self.collection_name = collection_name
@@ -90,14 +89,19 @@ class DepthNormalRenderer:
 
         self.in_loading = True
 
-        def get_mesh_data_thread(obj):
-            data = get_mesh_data_for_gpu(obj)
+        def get_mesh_data_thread(obj, eval_mesh, eval_mesh_data):
+            data = get_mesh_data_for_gpu(eval_mesh, eval_mesh_data)
             EventMan.Trigger("mesh_data_for_gpu_ready", {"object": obj, "data": data})
 
         for obj in self.objects:
+            # 这一步丢thread里会在非Camera视图时闪退
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            eval_mesh = obj.evaluated_get(depsgraph)
+            eval_mesh_data = eval_mesh.data
+
             thread = threading.Thread(
                 target=get_mesh_data_thread,
-                args=(obj,)
+                args=(obj, eval_mesh, eval_mesh_data, )
             )
             thread.start()
 

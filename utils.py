@@ -1,19 +1,16 @@
 import bpy
-from .event import EventMan
+from mathutils import Matrix
 
-def get_mesh_data_for_gpu(mesh_obj, add_uv_names=[], vertex_group_names=[], attribute_names=[]):
+def get_mesh_data_for_gpu(mesh_obj, eval_mesh, add_uv_names=[], vertex_group_names=[], attribute_names=[]):
     """
     符合GPU绘制时使用的mesh数据, 几乎花了一整天时间, 我尽力了
     add_uv_names: 附加的UV层名称, 别把active的UV层也写进去了
 
     好了, 该准备的都准备好了, 哪家好人拿个normal还用matcap, 拿个depth还后处理啊
     """
-    # mesh = mesh_obj.data
-
     # attributes里的数据很可能是geometry node之类的修改器生成的, 
     # 所以先evaluated_get, 相当于把数据塌陷一下, 不然拿到的是基础mesh的数据
-    depsgraph = bpy.context.evaluated_depsgraph_get()
-    eval_mesh = mesh_obj.evaluated_get(depsgraph).data
+    
     uv_layer = eval_mesh.uv_layers.active.data if eval_mesh.uv_layers.active else None
 
     pos_data = []
@@ -142,14 +139,23 @@ def get_mesh_data_for_gpu(mesh_obj, add_uv_names=[], vertex_group_names=[], attr
         "attributes": out_attributes_data
     }
 
-    # EventMan.Trigger("mesh_data_for_gpu_ready", {"object": mesh_obj, "data": out})
     return out
 
 # TODO: 罗里吧嗦的，需要优化
-def GetCameraVPMatrix(camera=None):
-    vp_matrix = None
-    view_matrix = None
-    proj_matrix = None
+def GetCameraVPMatrix():
+    vp_matrix = Matrix.Identity(4)  
+    view_matrix = Matrix.Identity(4)
+    proj_matrix = Matrix.Identity(4)
+    is_ortho = 0
+    camera = None
+    region3d = None
+
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            region3d = area.spaces.active.region_3d
+            is_camera_view = region3d.view_perspective == 'CAMERA'
+            camera = bpy.context.scene.camera if is_camera_view else None
+            break
     
     if camera:
         # Calculate camera matrices
@@ -179,24 +185,35 @@ def GetCameraVPMatrix(camera=None):
             )
         
         vp_matrix = proj_matrix @ view_matrix
-    else:
-        view3d = None
-        for area in bpy.context.screen.areas:
-            if area.type == 'VIEW_3D':
-                view3d = area.spaces.active
-                break
-        if view3d:
-            region3d = view3d.region_3d
-            view_matrix = region3d.view_matrix.inverted()
-            proj_matrix = region3d.window_matrix
-            vp_matrix = proj_matrix @ view_matrix
-            is_ortho = region3d.is_orthographic_side_view or region3d.view_perspective == 'ORTHO'
-    
+    elif region3d:
+        view_matrix = region3d.view_matrix
+        proj_matrix = region3d.window_matrix
+        vp_matrix = proj_matrix @ view_matrix
+        is_ortho = region3d.is_orthographic_side_view or region3d.view_perspective == 'ORTHO'
+        is_ortho = 1 if is_ortho else 0
+
     return vp_matrix, is_ortho, view_matrix, proj_matrix
     
-def GetViewVector(camera):
-    pos = camera.matrix_world.translation
-    dir = -camera.matrix_world.to_3x3().col[2]
+def GetViewVector():
+    camera = None
+    region3d = None
+
+    pos = (0, -1, 0)
+    dir = (0, 1, 0)
+
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            region3d = area.spaces.active.region_3d
+            is_camera_view = region3d.view_perspective == 'CAMERA'
+            camera = bpy.context.scene.camera if is_camera_view else None
+            break
+    
+    if camera:
+        pos = camera.matrix_world.translation
+        dir = -camera.matrix_world.to_3x3().col[2]
+    elif region3d:
+        pos = region3d.view_matrix.translation
+        dir = -region3d.view_matrix.to_3x3().col[2]
     return pos, dir
 
 def Test(contex):
