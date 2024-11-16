@@ -227,21 +227,12 @@ class CBProps(bpy.types.PropertyGroup):
     ) # type: ignore
 
     resolution_names = [
-        ('768,768', '768 x 768 (XL square)', ''),
-        ('1024,1024', '1024 x 1024 (XL square)', ''),
-        ('1216,1216', '1216 x 1216 (XL square)', ''),
-        ('1344,768', '1344 x 768 (XL landscape)', ''),
-        ('1216,832', '1216 x 832 (XL landscape)', ''),
-        ('1152,896', '1152 x 896 (XL landscape)', ''),
-        ('896,1152', '896 x 1152 (XL portrait)', ''),
-        ('832,1216', '832 x 1216 (XL portrait)', ''),
-        ('768,1344', '768 x 1344 (XL portrait)', ''),
         ('512,512', '512 x 512 (SD15 square)', ''),
-        ('640,640', '640 x 640 (SD15 square)', ''),
         ('768,512', '768 x 512 (SD15 landscape)', ''),
-        ('768,640', '768 x 640 (SD15 landscape)', ''),
         ('512,768', '512 x 768 (SD15 portrait)', ''),
-        ('640,960', '640 x 960 (SD15 portrait)', ''),
+        ('1024,1024', '1024 x 1024 (XL square)', ''),
+        ('1216,832', '1216 x 832 (XL landscape)', ''),
+        ('832,1216', '832 x 1216 (XL portrait)', ''),
         ('custom', 'custom', ''),
     ]
 
@@ -296,7 +287,5 @@ class CBProps(bpy.types.PropertyGroup):
         type = ReceiverNameGroup
     ) # type: ignore
 
-    keep_queueing: bpy.props.BoolProperty(
-        name = 'Keep Queueing', default=False, description='Keep Queueing for Realtime Repainting.\n ! Not recommended yet !'
-    ) # type: ignore
+    
     
