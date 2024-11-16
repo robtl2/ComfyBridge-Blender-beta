@@ -126,6 +126,7 @@ class ConnectOperator(bpy.types.Operator):
         if not Connect_Info['isConnected']:
             cb_props.show_info = True
             do_connect()
+            on_receiver_changed(context)
         else:
             cb_props.show_info = False
             do_disconnect()
