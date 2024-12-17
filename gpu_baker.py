@@ -198,8 +198,12 @@ def StartBake(active_obj, size=1024):
         "blend": (blend_offset, blend_range),
     })
 
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    eval_mesh = active_obj.evaluated_get(depsgraph)
+    eval_mesh_data = eval_mesh.data
+
     def get_mesh_data_thread():
-        mesh_data = get_mesh_data_for_gpu(active_obj, attribute_names=["uv_proj"])
+        mesh_data = get_mesh_data_for_gpu(eval_mesh, eval_mesh_data, attribute_names=["uv_proj"])
         EventMan.Trigger("mesh_data_for_gpu_ready", {"object": active_obj, "data": mesh_data})
     
     thread = threading.Thread(

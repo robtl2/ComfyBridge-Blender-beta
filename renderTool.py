@@ -14,8 +14,6 @@ def RenderCollection(context, sender):
 
     sender_name = sender.collection_name
 
-    # print(f"render collection: {sender.collection_name}")
-
     def render_color():
         tmp_path = os.path.join(tempfile.gettempdir(), f'{sender_name}_C.png')
         bpy.context.scene.eevee.taa_samples = sender.samples
